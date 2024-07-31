@@ -1,32 +1,44 @@
-# Prerequisites
-*.d
+#include <DHT.h>
+#include <ESP32Servo.h>
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+// Definición de pines
+#define DHTPIN 4
+#define DHTTYPE DHT11
+#define SERVO_PIN 18
 
-# Precompiled Headers
-*.gch
-*.pch
+// Inicialización del sensor y el servo
+DHT dht(DHTPIN, DHTTYPE);
+Servo myservo;
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  myservo.attach(SERVO_PIN);
+  myservo.write(0); // Inicializa el servo en la posición 0 grados
+}
 
-# Fortran module files
-*.mod
-*.smod
+void loop() {
+  // Leer la humedad y la temperatura
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
+  
+  // Comprobar si hay fallos en la lectura
+  if (isnan(humidity) || isnan(temperature)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+  // Imprimir los valores leídos
+  Serial.print("Humidity: ");
+  Serial.print(humidity);
+  Serial.print(" %\t");
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.println(" *C");
 
-# Executables
-*.exe
-*.out
-*.app
+  // Controlar el servo en función de la temperatura
+  int angle = map(temperature, 0, 50, 0, 180); // Mapea la temperatura a un ángulo de 0 a 180 grados
+  myservo.write(angle);
+
+  delay(2000); // Espera 2 segundos antes de la siguiente lectura
+}
